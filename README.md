@@ -15,6 +15,8 @@ When each file is copied from the download folder to the destination folder it i
 
 Finally when all the files have been removed from the download folder to the destination folder the empty paths are deleted from the download folder so it will be empty in the end.
 
++ No PyPI packages are needed nor any dependencies. 
+
 ## How to run the script
 + Make sure that Python3 is installed
 + Unzip the project to your favorite directory
@@ -27,8 +29,7 @@ python3 clean.py /Path/to/the/downloadfolder
 ### windows:
 py clean.py /Path/to/the/downloadfolder
 /Path/To/desired/destination
-
-+ No PyPI packages are needed nor any dependencies. 
+ 
 
 
 
