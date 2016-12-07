@@ -152,22 +152,6 @@ emptyFolders = list(p.glob("*"))
 for folder in emptyFolders:
 	shutil.rmtree(str(folder))
 
-#-------------
-#Test code
-#--------------
-#d = Path().resolve() / dest
-#sortedFiles = list(d.glob("**/*"))
-
-#print(len(allFiles))
-#print(len(sortedFiles))
-
-
-#list = [str(i) for i in allFiles]
-#for i in sorted(list, key= lambda x: x[-3:]):
-#	print(i)
-
-
-
  
 
 
