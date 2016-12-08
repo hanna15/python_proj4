@@ -41,7 +41,7 @@ for match in episodeMatches:
 allepisodes = list(untrackedPath.glob('**/*')) 
 splittedFilenames = []
 for episode in allepisodes:
-	splittedFilenames.append(str(episode).split('/')[-1])
+	splittedFilenames.append((re.split(r"/|\\", str(episode)))[-1])
 
 nameset = set() #set of foldernames for episodes
 for shortfilename in splittedFilenames:
