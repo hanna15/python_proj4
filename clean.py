@@ -25,12 +25,43 @@ if not new_dir.exists():
 episodePath = new_dir / 'episodes'
 moviePath = new_dir / 'movies'
 
-regexepisodestring = '[sS][0-9]{2}[eE][0-9]{2}.*.avi' #all episodes that have number and .avi
+regexepisodes = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*.avi' #all episodes that have number and .avi
+regexepisodes2 = 'Season [0-9].*.avi'
+notmatch = '^(?!.*'+regexepisodes+').*$'
 
 episodeMatches = []
 for file in allFiles:
-	if re.findall(regexepisodestring, str(file)):
+	if re.findall(regexepisodes, str(file)):
 		episodeMatches.append(file)
+
+################new matcc
+#TODO - create functions <3
+episodesMatches2 = []
+for file in allFiles:
+	if re.findall(regexepisodes2, str(file)):
+		if re.findall(notmatch, str(file)):
+			episodesMatches2.append(file)
+
+foldernames = set()
+for episode in episodesMatches2:
+	mess = str(episode).split('downloads')[-1] 
+	clean = re.sub('\W', '', mess).lower()
+	foldername = re.sub('season.*', '', clean)
+	foldernames.add(foldername)
+#print(foldernames)
+for folder in foldernames:
+	path = episodePath / folder.capitalize()
+	if not path.exists():
+		path.mkdir()
+
+for episode in episodesMatches2:
+	pathsToCheck = re.sub('\W','',str(episode)).lower() #clean path
+	for foldername in foldernames:
+		if foldername in pathsToCheck: #check if the stringpath has the foldername in the path
+			#if the path contains the name, move the file to the correct folder with corresponding foldername
+			shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
+
+####################
 
 untrackedPath = episodePath / 'UntrackedEpisodes'
 for match in episodeMatches:
@@ -43,9 +74,10 @@ splittedFilenames = []
 for episode in allepisodes:
 	splittedFilenames.append((re.split(r"/|\\", str(episode)))[-1])
 
+#TODO- sameina lykkjur
 nameset = set() #set of foldernames for episodes
 for shortfilename in splittedFilenames:
-	newname = re.sub(regexepisodestring +'|\W','',shortfilename)
+	newname = re.sub(regexepisodes +'|\W','',shortfilename)
 	if newname:
 		nameset.add(newname.lower())
 
@@ -61,11 +93,13 @@ for episode in allepisodes:
 			#if the path contains the name, move the file to the correct folder with corresponding foldername
 			shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
 
+#DUMP
+#list = [str(i) for i in allFiles]
+#for i in sorted(list, key= lambda x: x[-3:]):
+#	print(i)
 
 
 
-
-
-
+ 
 
 
