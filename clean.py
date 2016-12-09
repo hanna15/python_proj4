@@ -34,7 +34,7 @@ new_dir = Path().resolve() / dest
 if not new_dir.exists():
 	new_dir.mkdir()
 	(new_dir / 'episodes').mkdir() #create dir for all episodes
-	(new_dir / 'moives').mkdir() #create dir for all moies
+	(new_dir / 'movies').mkdir() #create dir for all moies
 	(new_dir / 'music').mkdir() #create dir for all audio 
 
 episodePath = new_dir / 'episodes'
@@ -78,19 +78,16 @@ for episode in episodesMatches2:
 	episodenameset2.add(foldername)
 createDirectories(episodenameset2, episodesMatches2)
 
-movieMatches = []
 for file in allFiles:
 	if re.findall(".*.avi", str(file)):
 		if re.findall(notmatch, str(file)):
 			if re.findall(notmatch2, str(file)):
-				movieMatches.append(file)
+				if re.findall('[0-9]{4}', str(file)):
+					shutil.copy(str(file), str(moviePath))
 
-#for i in movieMatches:
-	#print(i)
-
-for file in allFiles:
+for file in allFiles: 
 	if re.findall(regexmusic, str(file)):
-		shutil.copy(str(file), str(musicPath))
+		shutil.copy(str(file), str(musicPath)) #copy music files
 
 p = Path().resolve() / dest
 sortedFiles = list(p.glob("**/*"))
