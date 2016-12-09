@@ -4,6 +4,20 @@ from pathlib import Path
 import re
 import shutil
 
+def createDirectories(folderset, matches):
+	#print(foldernames)
+	for folder in folderset:
+		path = episodePath / folder.capitalize()
+		if not path.exists():
+			path.mkdir()
+
+	for episode in matches:
+		pathsToCheck = re.sub('\W','',str(episode)).lower() #clean path
+		for foldername in folderset:
+			if foldername in pathsToCheck: #check if the stringpath has the foldername in the path
+				#if the path contains the name, move the file to the correct folder with corresponding foldername
+				shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
+
 parser = argparse.ArgumentParser(
 	description="Clean download folder")
 
@@ -21,77 +35,69 @@ if not new_dir.exists():
 	new_dir.mkdir()
 	(new_dir / 'episodes').mkdir() #create dir for all episodes
 	(new_dir / 'moives').mkdir() #create dir for all moies
+	(new_dir / 'music').mkdir() #create dir for all audio 
 
 episodePath = new_dir / 'episodes'
 moviePath = new_dir / 'movies'
+musicPath = new_dir / 'music'
 
-regexepisodes = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*.avi' #all episodes that have number and .avi
-regexepisodes2 = 'Season [0-9].*.avi'
-notmatch = '^(?!.*'+regexepisodes+').*$'
+regexepisodes1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*.avi'
+#|[sS][0-9]{1,2}[eE][0-9]{1,2}.*.mp4' 
+regexepisodes2 = '[Ss]eason[s]? [0-9].*.avi'
+#'[Ss]eason[s]? [0-9]{1,}.*(.avi|.mp4)'
+#'[Ss]eason[s]? [0-9].*.avi|Season [0-9].*.mp4'
+notmatch = '^(?!.*'+regexepisodes1+').*$'
+notmatch2 = '^(?!.*'+regexepisodes2+').*$'
+regexmusic = '.*.mp3'
+regexmovies = '.*.avi'
 
-episodeMatches = []
+episodeMatches1 = []
 for file in allFiles:
-	if re.findall(regexepisodes, str(file)):
-		episodeMatches.append(file)
+	if re.findall(regexepisodes1, str(file)):
+		episodeMatches1.append(file)
 
-################new matcc
-#TODO - create functions <3
+episodenameset1 = set()
+for episode in episodeMatches1:
+	mess = re.split(r"/|\\", str(episode))[-1]
+	newname = re.sub(regexepisodes1 +'|\W','',mess)
+	if newname:
+		episodenameset1.add(newname.lower())
+createDirectories(episodenameset1, episodeMatches1)
+
 episodesMatches2 = []
 for file in allFiles:
 	if re.findall(regexepisodes2, str(file)):
 		if re.findall(notmatch, str(file)):
 			episodesMatches2.append(file)
 
-foldernames = set()
+episodenameset2 = set()
 for episode in episodesMatches2:
 	mess = str(episode).split('downloads')[-1] 
 	clean = re.sub('\W', '', mess).lower()
 	foldername = re.sub('season.*', '', clean)
-	foldernames.add(foldername)
-#print(foldernames)
-for folder in foldernames:
-	path = episodePath / folder.capitalize()
-	if not path.exists():
-		path.mkdir()
+	episodenameset2.add(foldername)
+createDirectories(episodenameset2, episodesMatches2)
 
-for episode in episodesMatches2:
-	pathsToCheck = re.sub('\W','',str(episode)).lower() #clean path
-	for foldername in foldernames:
-		if foldername in pathsToCheck: #check if the stringpath has the foldername in the path
-			#if the path contains the name, move the file to the correct folder with corresponding foldername
-			shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
+movieMatches = []
+for file in allFiles:
+	if re.findall(".*.avi", str(file)):
+		if re.findall(notmatch, str(file)):
+			if re.findall(notmatch2, str(file)):
+				movieMatches.append(file)
 
-####################
+#for i in movieMatches:
+	#print(i)
 
-untrackedPath = episodePath / 'UntrackedEpisodes'
-for match in episodeMatches:
-	if not untrackedPath.exists():
-		untrackedPath.mkdir()
-	shutil.copy(str(match), str(untrackedPath))
+for file in allFiles:
+	if re.findall(regexmusic, str(file)):
+		shutil.copy(str(file), str(musicPath))
 
-allepisodes = list(untrackedPath.glob('**/*')) 
-splittedFilenames = []
-for episode in allepisodes:
-	splittedFilenames.append((re.split(r"/|\\", str(episode)))[-1])
+p = Path().resolve() / dest
+sortedFiles = list(p.glob("**/*"))
 
-#TODO- sameina lykkjur
-nameset = set() #set of foldernames for episodes
-for shortfilename in splittedFilenames:
-	newname = re.sub(regexepisodes +'|\W','',shortfilename)
-	if newname:
-		nameset.add(newname.lower())
+print(len(allFiles))
+print(len(sortedFiles))
 
-for foldername in nameset: #create dir for common episodes
-	subepisodePath = episodePath / foldername.capitalize()
-	if not subepisodePath.exists():
-		subepisodePath.mkdir()
-
-for episode in allepisodes:
-	pathsToCheck = re.sub('\W','',str(episode)).lower() #clean path
-	for foldername in nameset:
-		if foldername in pathsToCheck: #check if the stringpath has the foldername in the path
-			#if the path contains the name, move the file to the correct folder with corresponding foldername
-			shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
 
 #DUMP
 #list = [str(i) for i in allFiles]
