@@ -4,6 +4,11 @@ from pathlib import Path
 import re
 import shutil
 
+#TODO: 
+#-rename files in every season 
+#remove junk from download folder
+#find more regex
+
 def createDirectories(folderset, matches):
 	#print(foldernames)
 	for folder in folderset:
@@ -41,15 +46,18 @@ episodePath = new_dir / 'episodes'
 moviePath = new_dir / 'movies'
 musicPath = new_dir / 'music'
 
-regexepisodes1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*.avi'
+regexepisodes1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*\.avi$'
 #|[sS][0-9]{1,2}[eE][0-9]{1,2}.*.mp4' 
-regexepisodes2 = '[Ss]eason[s]? [0-9].*.avi'
+regexepisodes2 = '[Ss]eason[s]? [0-9].*\.avi$'
 #'[Ss]eason[s]? [0-9]{1,}.*(.avi|.mp4)'
 #'[Ss]eason[s]? [0-9].*.avi|Season [0-9].*.mp4'
 notmatch = '^(?!.*'+regexepisodes1+').*$'
 notmatch2 = '^(?!.*'+regexepisodes2+').*$'
-regexmusic = '.*.mp3'
-regexmovies = '.*.avi'
+regexmusic = '.*\.mp3$'
+regexmovies = '.*\.avi$'
+
+regexseason1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}'
+regexseason2 =  '[Ss]eason[s]? [0-9]'
 
 episodeMatches1 = []
 for file in allFiles:
@@ -79,7 +87,7 @@ for episode in episodesMatches2:
 createDirectories(episodenameset2, episodesMatches2)
 
 for file in allFiles:
-	if re.findall(".*.avi", str(file)):
+	if re.findall(".*\.avi$", str(file)):
 		if re.findall(notmatch, str(file)):
 			if re.findall(notmatch2, str(file)):
 				if re.findall('[0-9]{4}', str(file)):
@@ -91,6 +99,32 @@ for file in allFiles:
 
 p = Path().resolve() / dest
 sortedFiles = list(p.glob("**/*"))
+
+episodeFolder = list(episodePath.glob("*"))
+for episodedir in episodeFolder:
+	folderitems = list(episodedir.glob("*"))
+	for item in folderitems:
+		if re.findall(regexseason1, str(item)):
+			dirtynumber = re.findall('[sS][0-9]{1,}', str(item))
+			number = dirtynumber[0][1:]
+			if number[0] == '0':
+				number = number[1:]
+			snr = 'Season ' + number
+			new_season_path = episodedir / snr
+			if not new_season_path.exists():
+				new_season_path.mkdir()
+			shutil.copy(str(item), str(new_season_path))
+			item.unlink()
+		#if re.findall(regexseason2, str(item)):
+		#	dirtynumber = re.findall('[Ss]eason[s]? [0-9]{1,}', str(item))
+		#	number = re.findall('[0-9]{1,}', dirtynumber[0])
+		#	numstring = number[0]
+		#	snr = 'Season ' + numstring
+		#	new_season_path = episodedir / snr
+		#	if not new_season_path.exists():
+		#		new_season_path.mkdir()
+		#	shutil.copy(str(item), str(new_season_path))
+		#	item.unlink()
 
 print(len(allFiles))
 print(len(sortedFiles))
