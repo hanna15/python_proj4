@@ -5,7 +5,7 @@ import re
 import shutil
 
 #TODO: 
-#-rename files in every season 
+#-rename files in every season x
 #remove junk from download folder
 #find more regex
 
@@ -97,8 +97,6 @@ for file in allFiles:
 	if re.findall(regexmusic, str(file)):
 		shutil.copy(str(file), str(musicPath)) #copy music files
 
-p = Path().resolve() / dest
-sortedFiles = list(p.glob("**/*"))
 
 episodeFolder = list(episodePath.glob("*"))
 for episodedir in episodeFolder:
@@ -125,6 +123,26 @@ for episodedir in episodeFolder:
 		#		new_season_path.mkdir()
 		#	shutil.copy(str(item), str(new_season_path))
 		#	item.unlink()
+
+#rename file containing hdtv.xvid or xvid
+regexjunk = r'[Hh][dD][Tt][Vv]\.[Xx][Vv][Ii][dD]|[Xx][Vv][Ii][dD]'
+seasonstuff = list(episodePath.glob('*/*'))
+for path in seasonstuff:
+	if path.is_dir():
+		episodes = list(path.glob('*'))
+		for episode in episodes:
+			if re.findall(regexjunk, str(episode)):
+
+				t = re.sub(regexjunk, '', str(episode))
+				target = Path(t)
+	
+				episode.rename(target)
+				if episode.exists():
+					episode.unlink()
+
+
+p = Path().resolve() / dest
+sortedFiles = list(p.glob("**/*"))
 
 print(len(allFiles))
 print(len(sortedFiles))
