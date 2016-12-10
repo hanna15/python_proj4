@@ -4,13 +4,7 @@ from pathlib import Path
 import re
 import shutil
 
-#TODO: 
-#-rename files in every season x
-#remove junk from download folder
-#find more regex
-
 def createDirectories(folderset, matches):
-	#print(foldernames)
 	for folder in folderset:
 		path = episodePath / folder.capitalize()
 		if not path.exists():
@@ -21,7 +15,9 @@ def createDirectories(folderset, matches):
 		for foldername in folderset:
 			if foldername in pathsToCheck: #check if the stringpath has the foldername in the path
 				#if the path contains the name, move the file to the correct folder with corresponding foldername
-				shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
+				if episode.exists():
+					shutil.copy(str(episode), str(episodePath / foldername.capitalize()))
+					episode.unlink()
 
 parser = argparse.ArgumentParser(
 	description="Clean download folder")
@@ -46,15 +42,15 @@ episodePath = new_dir / 'episodes'
 moviePath = new_dir / 'movies'
 musicPath = new_dir / 'music'
 
-regexepisodes1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*\.avi$'
-#|[sS][0-9]{1,2}[eE][0-9]{1,2}.*.mp4' 
-regexepisodes2 = '[Ss]eason[s]? [0-9].*\.avi$'
-#'[Ss]eason[s]? [0-9]{1,}.*(.avi|.mp4)'
-#'[Ss]eason[s]? [0-9].*.avi|Season [0-9].*.mp4'
+#regex strings
+regexepisodes1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}.*\.(avi|mp4|mkv)$'
+regexepisodes2 = '[Ss]eason[s]? [0-9].*\.(avi|mkv)$'
+
 notmatch = '^(?!.*'+regexepisodes1+').*$'
 notmatch2 = '^(?!.*'+regexepisodes2+').*$'
+
 regexmusic = '.*\.mp3$'
-regexmovies = '.*\.avi$'
+regexmovies = '.*\.(avi|mp4|mkv)$'
 
 regexseason1 = '[sS][0-9]{1,2}[eE][0-9]{1,2}'
 regexseason2 =  '[Ss]eason[s]? [0-9]'
@@ -87,17 +83,19 @@ for episode in episodesMatches2:
 createDirectories(episodenameset2, episodesMatches2)
 
 for file in allFiles:
-	if re.findall(".*\.avi$", str(file)):
+	if re.findall(regexmovies, str(file)):
 		if re.findall(notmatch, str(file)):
 			if re.findall(notmatch2, str(file)):
 				if re.findall('[0-9]{4}', str(file)):
 					shutil.copy(str(file), str(moviePath))
+					file.unlink() #delete file in download
 
 for file in allFiles: 
 	if re.findall(regexmusic, str(file)):
 		shutil.copy(str(file), str(musicPath)) #copy music files
+		file.unlink() #delete file in download
 
-
+#create season folders for episodes
 episodeFolder = list(episodePath.glob("*"))
 for episodedir in episodeFolder:
 	folderitems = list(episodedir.glob("*"))
@@ -113,16 +111,6 @@ for episodedir in episodeFolder:
 				new_season_path.mkdir()
 			shutil.copy(str(item), str(new_season_path))
 			item.unlink()
-		#if re.findall(regexseason2, str(item)):
-		#	dirtynumber = re.findall('[Ss]eason[s]? [0-9]{1,}', str(item))
-		#	number = re.findall('[0-9]{1,}', dirtynumber[0])
-		#	numstring = number[0]
-		#	snr = 'Season ' + numstring
-		#	new_season_path = episodedir / snr
-		#	if not new_season_path.exists():
-		#		new_season_path.mkdir()
-		#	shutil.copy(str(item), str(new_season_path))
-		#	item.unlink()
 
 #rename file containing hdtv.xvid or xvid
 regexjunk = r'[Hh][dD][Tt][Vv]\.[Xx][Vv][Ii][dD]|[Xx][Vv][Ii][dD]'
@@ -141,14 +129,39 @@ for path in seasonstuff:
 					episode.unlink()
 
 
-p = Path().resolve() / dest
-sortedFiles = list(p.glob("**/*"))
+#delete useless files from download folder
+junk = '.*\.(txt|jpg|nfo|png)$'
+for file in allFiles:
+	if re.findall(junk, str(file)):
+		file.unlink()
 
-print(len(allFiles))
-print(len(sortedFiles))
+#move unorted files to destination folder and remove them from download folder
+unsortedPath = new_dir / 'unsorted'
+if not unsortedPath.exists():
+	unsortedPath.mkdir()
+
+#copy all unsorted files to unsorted folder in destination
+restFiles = list(p.glob("**/*")) 
+for file in restFiles:
+	if not file.is_dir() and file.exists():
+		shutil.copy(str(file), str(unsortedPath))
+		file.unlink()
+
+#remove all empty directories from downl
+emptyFolders = list(p.glob("*"))
+for folder in emptyFolders:
+	shutil.rmtree(str(folder))
+
+#-------------
+#Test code
+#--------------
+#d = Path().resolve() / dest
+#sortedFiles = list(d.glob("**/*"))
+
+#print(len(allFiles))
+#print(len(sortedFiles))
 
 
-#DUMP
 #list = [str(i) for i in allFiles]
 #for i in sorted(list, key= lambda x: x[-3:]):
 #	print(i)
